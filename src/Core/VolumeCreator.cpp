@@ -26,6 +26,13 @@
 #include "VolumeCreator.h"
 #include "FatFormatter.h"
 
+/*
+*  USE FOR DEBUGGING 
+*/
+#include <stdio.h>
+#include <iostream>
+#include "Common/SecurityToken.h"
+
 namespace VeraCrypt
 {
 	VolumeCreator::VolumeCreator ()
@@ -312,6 +319,26 @@ namespace VeraCrypt
 			SecureBuffer salt (VolumeHeader::GetSaltSize());
 			RandomNumberGenerator::GetData (salt);
 			headerOptions.Salt = salt;
+
+			/*
+			* MODIF TEST
+			*/
+			SecureBuffer pkirandom(64);
+			RandomNumberGenerator::GetData(pkirandom);
+
+			std::cout << "----------------------" << std::endl;
+			std::cout << "[+] Generate Random Buffer : %64x" << pkirandom << std::endl;
+			std::cout << "----------------------" << std::endl;
+			std::cout << "[+] Trying communicate with pkcs11 card : " << std::endl;
+			std::cout << "----------------------" << std::endl;
+
+			CK_OBJECT_HANDLE pub = SecurityToken::GetCertificate();
+
+			SecurityToken::Encrypt(pub,pkirandom,pkirandom.Size());
+
+			/*
+			*  FIN MODIF TEST
+			*/
 
 			// Header key
 			HeaderKey.Allocate (VolumeHeader::GetLargestSerializedKeySize());

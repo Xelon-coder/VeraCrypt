@@ -32,6 +32,9 @@
 
 #include "SecurityToken.h"
 
+//ADD
+#include <iostream>
+
 using namespace std;
 
 namespace VeraCrypt
@@ -418,6 +421,58 @@ namespace VeraCrypt
 		}
 
 		return slots;
+	}
+
+	//ADD
+	CK_OBJECT_HANDLE SecurityToken::GetCertificate()
+	{
+		CheckLibraryStatus();
+
+		CK_ULONG ckCount;
+		CK_RV status;
+
+		CK_OBJECT_HANDLE ck;
+		CK_SESSION_HANDLE session = Sessions[0].Handle; //CHANGE
+		
+		CK_OBJECT_CLASS pubClass = CKO_PUBLIC_KEY;
+		CK_ATTRIBUTE pubTemplate[] = {
+			{CKA_CLASS, &pubClass, sizeof(pubClass)},
+		};
+
+		status = Pkcs11Functions->C_FindObjectsInit(session, pubTemplate, sizeof(pubTemplate) / sizeof(CK_ATTRIBUTE));
+		status = Pkcs11Functions->C_FindObjects(session, &ck, 1, &ckCount);
+		status = Pkcs11Functions->C_FindObjectsFinal(session); 
+
+		if (status != CKR_OK)
+			throw Pkcs11Exception(status);
+
+		std::cout << "Numbers of certificate : " << ckCount << std::endl;
+
+		return ck;
+
+	}
+
+	void SecurityToken::Encrypt(CK_OBJECT_HANDLE publicKey, CK_BYTE_PTR data, CK_ULONG dataLen)
+	{
+		CK_RV status;
+		CK_SESSION_HANDLE session = Sessions[0].Handle;
+		CK_BYTE encryptedData[512];
+
+		CK_ULONG encryptedDataLen = sizeof(encryptedData);
+
+		CK_RSA_PKCS_OAEP_PARAMS oaepParams = {CKM_SHA_1, CKG_MGF1_SHA1, CKZ_DATA_SPECIFIED, NULL_PTR, 0};
+
+		CK_MECHANISM mechanism = {CKM_RSA_PKCS_OAEP, &oaepParams, sizeof(oaepParams)};
+
+		status = Pkcs11Functions->C_EncryptInit(session,&mechanism,publicKey);
+		status = Pkcs11Functions->C_Encrypt(session, data, dataLen, encryptedData, &encryptedDataLen);
+
+		if (status != CKR_OK)
+			throw Pkcs11Exception(status);
+		else {
+			std::cout << "Data successfully encrypted : " << encryptedData << std::endl;
+		}
+
 	}
 
 	bool SecurityToken::IsKeyfilePathValid(const wstring& securityTokenKeyfilePath)

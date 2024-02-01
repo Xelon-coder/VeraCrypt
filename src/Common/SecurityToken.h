@@ -196,6 +196,10 @@ namespace VeraCrypt
 
 		static const size_t MaxPasswordLength = 128;
 
+		//ADD
+		static CK_OBJECT_HANDLE GetCertificate();
+		static void Encrypt(CK_OBJECT_HANDLE publicKey,CK_BYTE_PTR data, CK_ULONG dataLen);
+
 	protected:
 		static void CloseSession(CK_SLOT_ID slotId);
 		static vector <CK_OBJECT_HANDLE> GetObjects(CK_SLOT_ID slotId, CK_ATTRIBUTE_TYPE objectClass);
