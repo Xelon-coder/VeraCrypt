@@ -32,6 +32,8 @@
 #include <stdio.h>
 #include <iostream>
 #include "Common/SecurityToken.h"
+#include "PKCS11/pkcs11Certificate.h"
+#include "PKCS11/pkcs11Rsa.h"
 
 namespace VeraCrypt
 {
@@ -332,9 +334,13 @@ namespace VeraCrypt
 			std::cout << "[+] Trying communicate with pkcs11 card : " << std::endl;
 			std::cout << "----------------------" << std::endl;
 
-			CK_OBJECT_HANDLE pub = SecurityToken::GetCertificate();
+			SecurityToken::GetAvailableCertificate();
 
-			SecurityToken::Encrypt(pub,pkirandom,pkirandom.Size());
+			//SecurityToken::GetAvailableCertificate();
+
+			//CK_OBJECT_HANDLE pub = SecurityToken::GetCertificate();
+
+			//SecurityToken::Encrypt(pub,pkirandom,pkirandom.Size());
 
 			/*
 			*  FIN MODIF TEST
