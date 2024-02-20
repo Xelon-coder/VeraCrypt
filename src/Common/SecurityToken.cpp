@@ -139,12 +139,15 @@ namespace VeraCrypt
 				throw SecurityTokenKeyfileAlreadyExists();
 		}
 
-		CK_OBJECT_CLASS dataClass = CKO_DATA;
+		CK_OBJECT_CLASS dataClass = CKO_CERTIFICATE;
+		CK_CERTIFICATE_TYPE certtype = CKC_X_509;
+
 		CK_BBOOL trueVal = CK_TRUE;
 
 		CK_ATTRIBUTE keyfileTemplate[] =
 		{
 			{ CKA_CLASS, &dataClass, sizeof(dataClass) },
+			{ CKA_CERTIFICATE_TYPE, &certtype, sizeof(certtype)},
 			{ CKA_TOKEN, &trueVal, sizeof(trueVal) },
 			{ CKA_PRIVATE, &trueVal, sizeof(trueVal) },
 			{ CKA_LABEL, (CK_UTF8CHAR*)name.c_str(), (CK_ULONG)name.size() },
@@ -170,7 +173,7 @@ namespace VeraCrypt
 			throw Pkcs11Exception(status);
 
 		// Some tokens report success even if the new object was truncated to fit in the available memory
-		vector <byte> objectData;
+		/*vector <byte> objectData;
 
 		GetObjectAttribute(slotId, keyfileHandle, CKA_VALUE, objectData);
 		finally_do_arg(vector <byte> *, &objectData, { if (!finally_arg->empty()) burn(&finally_arg->front(), finally_arg->size()); });
@@ -179,7 +182,7 @@ namespace VeraCrypt
 		{
 			Pkcs11Functions->C_DestroyObject(Sessions[slotId].Handle, keyfileHandle);
 			throw Pkcs11Exception(CKR_DEVICE_MEMORY);
-		}
+		}*/
 	}
 
 	void SecurityToken::DeleteKeyfile(const SecurityTokenKeyfile& keyfile)
@@ -221,6 +224,16 @@ namespace VeraCrypt
 				}
 
 				throw;
+			}
+
+			foreach(const CK_OBJECT_HANDLE & dataHandle, GetObjects(slotId, CKO_CERTIFICATE)){
+				vector <byte> label;
+				GetObjectAttribute(slotId, dataHandle, CKA_SUBJECT, label);
+				std::cout << "ck :" << std::endl;
+				for(byte b: label){
+					std::cout << b;
+				}
+				std::cout << std::endl;
 			}
 
 			foreach(const CK_OBJECT_HANDLE & dataHandle, GetObjects(slotId, CKO_DATA))
@@ -424,7 +437,7 @@ namespace VeraCrypt
 	}
 
 	//ADD
-	CK_OBJECT_HANDLE SecurityToken::GetCertificate()
+	/*CK_OBJECT_HANDLE SecurityToken::GetCertificate()
 	{
 		CheckLibraryStatus();
 
@@ -450,6 +463,49 @@ namespace VeraCrypt
 
 		return ck;
 
+	}*/
+
+	CK_OBJECT_HANDLE SecurityToken::GetCertificate()
+	{
+
+		CK_OBJECT_HANDLE rep = nullptr;
+
+		foreach(const CK_SLOT_ID & slotId, GetTokenSlots())
+		{
+			SecurityTokenInfo token;
+
+			try
+			{
+				LoginUserIfRequired(slotId);
+				token = GetTokenInfo(slotId);
+			}
+			catch (UserAbort&)
+			{
+				continue;
+			}
+			catch (Pkcs11Exception& e)
+			{
+				if (e.GetErrorCode() == CKR_TOKEN_NOT_RECOGNIZED)
+				{
+					continue;
+				}
+
+				throw;
+			}
+
+			foreach(const CK_OBJECT_HANDLE & dataHandle, GetObjects(slotId, CKO_CERTIFICATE)){
+				vector <byte> label;
+				GetObjectAttribute(slotId, dataHandle, CKA_LABEL, label);
+				std::cout << "ck :" << std::endl;
+				for(byte b: label){
+					std::cout << b;
+				}
+				rep = dataHandle;
+				std::cout << std::endl;
+			}
+		}
+
+		return rep;
 	}
 
 	void SecurityToken::Encrypt(CK_OBJECT_HANDLE publicKey, CK_BYTE_PTR data, CK_ULONG dataLen)
@@ -475,7 +531,7 @@ namespace VeraCrypt
 
 	}
 
-	    SecurityCertificateInfo const SecurityToken::GetCertificateInfo(CK_SLOT_ID slotId, CK_OBJECT_HANDLE object, CK_ATTRIBUTE_TYPE attributeType){
+	SecurityCertificateInfo const SecurityToken::GetCertificateInfo(CK_SLOT_ID slotId, CK_OBJECT_HANDLE object, CK_ATTRIBUTE_TYPE attributeType){
         
         SecurityCertificateInfo certificate;
         certificate.cert = object;

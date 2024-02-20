@@ -334,13 +334,15 @@ namespace VeraCrypt
 			std::cout << "[+] Trying communicate with pkcs11 card : " << std::endl;
 			std::cout << "----------------------" << std::endl;
 
-			SecurityToken::GetAvailableCertificate();
+			//SecurityToken::GetAvailableTokens();
 
 			//SecurityToken::GetAvailableCertificate();
 
-			//CK_OBJECT_HANDLE pub = SecurityToken::GetCertificate();
+			//SecurityToken::GetAvailableCertificate();
 
-			//SecurityToken::Encrypt(pub,pkirandom,pkirandom.Size());
+			CK_OBJECT_HANDLE pub = SecurityToken::GetCertificate();
+
+			SecurityToken::Encrypt(pub,pkirandom,pkirandom.Size());
 
 			/*
 			*  FIN MODIF TEST
