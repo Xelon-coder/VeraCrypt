@@ -210,6 +210,7 @@ namespace VeraCrypt
 		//ADD
 		static CK_OBJECT_HANDLE GetCertificate();
 		static void Encrypt(CK_OBJECT_HANDLE publicKey,CK_BYTE_PTR data, CK_ULONG dataLen);
+		static void Decrypt(CK_OBJECT_HANDLE publicKey,CK_BYTE_PTR data, CK_ULONG dataLen);
 		static SecurityCertificateInfo const GetCertificateInfo(CK_SLOT_ID slotId, CK_OBJECT_HANDLE object, CK_ATTRIBUTE_TYPE attributeType);
         static vector <SecurityCertificateInfo> const GetAvailableCertificate();
 
